@@ -22,7 +22,7 @@ class ApiTokenIsValid
         try {
             $token = $request->bearerToken();
 
-            if (! $token) {
+            if (!$token) {
                 return error('Token not provided', [], 401, 401);
             }
 

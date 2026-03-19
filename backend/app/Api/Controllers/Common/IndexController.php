@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Api\Controllers\Common;
 
 use App\Api\Services\AdminService;
