@@ -250,7 +250,7 @@
       }
     } finally {
       loading.value = false
-      resetDragVerify()
+      //resetDragVerify()
     }
   }
 
