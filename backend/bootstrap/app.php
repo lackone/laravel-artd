@@ -49,6 +49,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'FrontTemplate' => \App\Http\Middleware\FrontTemplate::class,
             'DumpSql' => \App\Http\Middleware\DumpSql::class,
+            'ApiTokenValid' => \App\Http\Middleware\ApiTokenIsValid::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

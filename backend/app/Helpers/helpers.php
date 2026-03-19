@@ -44,11 +44,14 @@ if (!function_exists('toList')) {
     {
         $list = $list->toArray();
         $result = [
-            'code' => 0,
-            'msg' => '',
-            'data' => $list['data'] ?: [],
-            'count' => $list['total'] ?: 0,
-            'totalRow' => $totalRow ?: [],
+            'code' => 200,
+            'msg' => 'success',
+            'data' => [
+                'current' => $list['current_page'] ?: 1,
+                'records' => $list['data'] ?: [],
+                'size' => $list['per_page'] ?: 10,
+                'total' => $list['total'] ?: 0,
+            ],
         ];
         return response()->json($result, 200);
     }
@@ -361,5 +364,46 @@ if (!function_exists('batchDelCache')) {
         } catch (\Throwable $e) {
             return false;
         }
+    }
+}
+
+if (!function_exists('imgUrl')) {
+    /**
+     * 获取图片的URL
+     * @param $path
+     */
+    function imgUrl($path, $resize = 0)
+    {
+        if (!$path) {
+            return '';
+        }
+
+        $url = '//' . preg_replace('/^https?:\/\//', '', asset($path));
+
+        return $url;
+    }
+}
+
+if (!function_exists('removeDomainPrefix')) {
+    /**
+     * 去除域名前缀
+     * @param $url
+     */
+    function removeDomainPrefix($url)
+    {
+        $parsed = parse_url($url);
+        $path = $parsed['path'] ?? '';
+
+        if (stripos($path, '/uploads/') === 0) {
+            return $path;
+        }
+
+        $pos = stripos($url, '/uploads/');
+
+        if ($pos !== false) {
+            return substr($url, $pos);
+        }
+
+        return $url;
     }
 }
