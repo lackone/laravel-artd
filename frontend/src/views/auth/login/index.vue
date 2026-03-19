@@ -18,7 +18,7 @@
             @keyup.enter="handleSubmit"
             style="margin-top: 25px"
           >
-            <ElFormItem prop="account">
+            <!-- <ElFormItem prop="account">
               <ElSelect v-model="formData.account" @change="setupAccount">
                 <ElOption
                   v-for="account in accounts"
@@ -29,7 +29,7 @@
                   <span>{{ account.label }}</span>
                 </ElOption>
               </ElSelect>
-            </ElFormItem>
+            </ElFormItem> -->
             <ElFormItem prop="username">
               <ElInput
                 class="custom-height"
@@ -49,7 +49,7 @@
             </ElFormItem>
 
             <!-- 推拽验证 -->
-            <div class="relative pb-5 mt-6">
+            <!-- <div class="relative pb-5 mt-6">
               <div
                 class="relative z-[2] overflow-hidden select-none rounded-lg border border-transparent tad-300"
                 :class="{ '!border-[#FF4E4F]': !isPassing && isClickPass }"
@@ -71,15 +71,15 @@
               >
                 {{ $t('login.placeholder.slider') }}
               </p>
-            </div>
+            </div> -->
 
             <div class="flex-cb mt-2 text-sm">
               <ElCheckbox v-model="formData.rememberPassword">{{
                 $t('login.rememberPwd')
               }}</ElCheckbox>
-              <RouterLink class="text-theme" :to="{ name: 'ForgetPassword' }">{{
+              <!-- <RouterLink class="text-theme" :to="{ name: 'ForgetPassword' }">{{
                 $t('login.forgetPwd')
-              }}</RouterLink>
+              }}</RouterLink> -->
             </div>
 
             <div style="margin-top: 30px">
@@ -94,12 +94,12 @@
               </ElButton>
             </div>
 
-            <div class="mt-5 text-sm text-gray-600">
+            <!-- <div class="mt-5 text-sm text-gray-600">
               <span>{{ $t('login.noAccount') }}</span>
               <RouterLink class="text-theme" :to="{ name: 'Register' }">{{
                 $t('login.register')
               }}</RouterLink>
-            </div>
+            </div> -->
           </ElForm>
         </div>
       </div>
@@ -194,9 +194,9 @@
   // 设置账号
   const setupAccount = (key: AccountKey) => {
     const selectedAccount = accounts.value.find((account: Account) => account.key === key)
-    formData.account = key
-    formData.username = selectedAccount?.userName ?? ''
-    formData.password = selectedAccount?.password ?? ''
+    // formData.account = key
+    // formData.username = selectedAccount?.userName ?? ''
+    // formData.password = selectedAccount?.password ?? ''
   }
 
   // 登录
@@ -209,10 +209,10 @@
       if (!valid) return
 
       // 拖拽验证
-      if (!isPassing.value) {
-        isClickPass.value = true
-        return
-      }
+      // if (!isPassing.value) {
+      //   isClickPass.value = true
+      //   return
+      // }
 
       loading.value = true
 
@@ -220,7 +220,7 @@
       const { username, password } = formData
 
       const { token, refreshToken } = await fetchLogin({
-        userName: username,
+        account: username,
         password
       })
 

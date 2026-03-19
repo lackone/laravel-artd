@@ -1,19 +1,19 @@
-<!-- 用户管理页面 -->
-<!-- art-full-height 自动计算出页面剩余高度 -->
-<!-- art-table-card 一个符合系统样式的 class，同时自动撑满剩余高度 -->
-<!-- 更多 useTable 使用示例请移步至 功能示例 下面的高级表格示例或者查看官方文档 -->
-<!-- useTable 文档：https://www.artd.pro/docs/zh/guide/hooks/use-table.html -->
 <template>
-  <div class="user-page art-full-height">
+  <div class="art-full-height">
     <!-- 搜索栏 -->
-    <UserSearch v-model="searchForm" @search="handleSearch" @reset="resetSearchParams"></UserSearch>
+    <Search v-model="searchForm" @search="handleSearch" @reset="resetSearchParams"></Search>
 
     <ElCard class="art-table-card">
       <!-- 表格头部 -->
       <ArtTableHeader v-model:columns="columnChecks" :loading="loading" @refresh="refreshData">
         <template #left>
           <ElSpace wrap>
-            <ElButton @click="showDialog('add')" v-ripple>新增用户</ElButton>
+            <ElButton type="primary" @click="showDialog('add')" v-ripple>
+              <ElIcon>
+                <Plus />
+              </ElIcon>
+              新增
+            </ElButton>
           </ElSpace>
         </template>
       </ArtTableHeader>
@@ -30,67 +30,53 @@
       >
       </ArtTable>
 
-      <!-- 用户弹窗 -->
-      <UserDialog
+      <!-- 弹窗 -->
+      <Dialog
         v-model:visible="dialogVisible"
         :type="dialogType"
-        :user-data="currentUserData"
+        :data="currentData"
         @submit="handleDialogSubmit"
+      />
+      <!-- 角色弹窗 -->
+      <RoleDialog
+        v-model:visible="roleDialogVisible"
+        :data="currentData"
+        @submit="refreshData"
       />
     </ElCard>
   </div>
 </template>
 
 <script setup lang="ts">
+  import { Plus } from '@element-plus/icons-vue'
   import ArtButtonTable from '@/components/core/forms/art-button-table/index.vue'
-  import { ACCOUNT_TABLE_DATA } from '@/mock/temp/formData'
   import { useTable } from '@/hooks/core/useTable'
-  import { fetchGetUserList } from '@/api/system-manage'
-  import UserSearch from './modules/user-search.vue'
-  import UserDialog from './modules/user-dialog.vue'
-  import { ElTag, ElMessageBox, ElImage } from 'element-plus'
+  import { fetchGetList, fetchDelete } from '@/api/common'
+  import Search from './modules/search.vue'
+  import Dialog from './modules/dialog.vue'
+  import RoleDialog from './modules/role-dialog.vue'
+  import { ElTag, ElMessageBox, ElImage, ElTooltip } from 'element-plus'
   import { DialogType } from '@/types'
+  import { getStatusConfig, formatDateTime, API_URL } from '@/utils/constants'
+  import defaultAvatar from '@/assets/images/avatar/avatar.png'
 
   defineOptions({ name: 'User' })
 
-  type UserListItem = Api.SystemManage.UserListItem
+  type ListItem = Api.Common.ListItem
 
   // 弹窗相关
   const dialogType = ref<DialogType>('add')
   const dialogVisible = ref(false)
-  const currentUserData = ref<Partial<UserListItem>>({})
+  const currentData = ref<Partial<ListItem>>({})
+
+  // 角色弹窗相关
+  const roleDialogVisible = ref(false)
 
   // 选中行
-  const selectedRows = ref<UserListItem[]>([])
+  const selectedRows = ref<ListItem[]>([])
 
   // 搜索表单
-  const searchForm = ref({
-    userName: undefined,
-    userGender: undefined,
-    userPhone: undefined,
-    userEmail: undefined,
-    status: '1'
-  })
-
-  // 用户状态配置
-  const USER_STATUS_CONFIG = {
-    '1': { type: 'success' as const, text: '在线' },
-    '2': { type: 'info' as const, text: '离线' },
-    '3': { type: 'warning' as const, text: '异常' },
-    '4': { type: 'danger' as const, text: '注销' }
-  } as const
-
-  /**
-   * 获取用户状态配置
-   */
-  const getUserStatusConfig = (status: string) => {
-    return (
-      USER_STATUS_CONFIG[status as keyof typeof USER_STATUS_CONFIG] || {
-        type: 'info' as const,
-        text: '未知'
-      }
-    )
-  }
+  const searchForm = ref({})
 
   const {
     columns,
@@ -107,76 +93,113 @@
   } = useTable({
     // 核心配置
     core: {
-      apiFn: fetchGetUserList,
+      apiFn: (params: any) => fetchGetList<Api.Common.DataList>(API_URL.user.list, params),
       apiParams: {
         current: 1,
-        size: 20,
+        size: 10,
         ...searchForm.value
       },
-      // 自定义分页字段映射，未设置时将使用全局配置 tableConfig.ts 中的 paginationKey
-      // paginationKey: {
-      //   current: 'pageNum',
-      //   size: 'pageSize'
-      // },
+      paginationKey: {
+        current: 'page',
+        size: 'size'
+      },
       columnsFactory: () => [
         { type: 'selection' }, // 勾选列
-        { type: 'index', width: 60, label: '序号' }, // 序号
+        { prop: 'id', width: 60, label: 'ID' },
+        { prop: 'account', label: '账号' },
         {
-          prop: 'userInfo',
-          label: '用户名',
+          prop: 'avatar',
+          label: '头像/昵称/姓名',
           width: 280,
-          // visible: false, // 默认是否显示列
           formatter: (row) => {
-            return h('div', { class: 'user flex-c' }, [
+            const avatarUrl = row.avatar || defaultAvatar
+            return h('div', { class: 'flex-c' }, [
               h(ElImage, {
                 class: 'size-9.5 rounded-md',
-                src: row.avatar,
-                previewSrcList: [row.avatar],
-                // 图片预览是否插入至 body 元素上，用于解决表格内部图片预览样式异常
+                src: avatarUrl,
+                previewSrcList: [avatarUrl],
                 previewTeleported: true
               }),
               h('div', { class: 'ml-2' }, [
-                h('p', { class: 'user-name' }, row.userName),
-                h('p', { class: 'email' }, row.userEmail)
+                h('p', { class: '' }, row.nick_name),
+                h('p', { class: '' }, row.real_name)
               ])
             ])
           }
         },
         {
-          prop: 'userGender',
-          label: '性别',
-          sortable: true,
-          formatter: (row) => row.userGender
+          prop: 'roles',
+          label: '角色',
+          formatter: (row) => {
+            const roleNames = (row.roles as any[])?.map((role: any) => role.name) || []
+            const roleNamesStr = roleNames.join(',')
+            return h('p', { class: '' }, roleNamesStr)
+          }
         },
-        { prop: 'userPhone', label: '手机号' },
+        {
+          prop: 'is_super',
+          label: '超级管理员',
+          formatter: (row) => {
+            const superAdmin = row.is_super == 1 ? '是' : '否'
+            return h(ElTag, { type: row.is_super == 1 ? 'success' : 'danger' }, superAdmin)
+          }
+        },
+        { prop: 'phone', label: '手机号' },
+        { prop: 'email', label: '邮箱' },
         {
           prop: 'status',
           label: '状态',
           formatter: (row) => {
-            const statusConfig = getUserStatusConfig(row.status)
+            const statusConfig = getStatusConfig(row.status)
             return h(ElTag, { type: statusConfig.type }, () => statusConfig.text)
           }
         },
         {
-          prop: 'createTime',
-          label: '创建日期',
-          sortable: true
+          prop: 'last_login_ip',
+          label: '登录IP/时间',
+          formatter: (row) => {
+            return h('div', { class: '' }, [
+              h('p', { class: '' }, row.last_login_ip || '-'),
+              h('p', { class: '' }, formatDateTime(row.last_login_time))
+            ]);
+          }
+        },
+        {
+          prop: 'created',
+          label: '创建/更新时间',
+          formatter: (row) => {
+            return h('div', { class: '' }, [
+              h('p', { class: '' }, formatDateTime(row.created)),
+              h('p', { class: '' }, formatDateTime(row.updated))
+            ]);
+          }
         },
         {
           prop: 'operation',
           label: '操作',
-          width: 120,
-          fixed: 'right', // 固定列
+          width: 180,
+          fixed: 'right',
           formatter: (row) =>
             h('div', [
-              h(ArtButtonTable, {
-                type: 'edit',
-                onClick: () => showDialog('edit', row)
-              }),
-              h(ArtButtonTable, {
-                type: 'delete',
-                onClick: () => deleteUser(row)
-              })
+              h(ElTooltip, { content: '编辑', placement: 'top' }, () => 
+                h(ArtButtonTable, {
+                  type: 'edit',
+                  onClick: () => showDialog('edit', row)
+                })
+              ),
+              h(ElTooltip, { content: '设置角色', placement: 'top' }, () => 
+                h(ArtButtonTable, {
+                  icon: 'ri:user-settings-line',
+                  iconClass: 'bg-info/12 text-info',
+                  onClick: () => showRoleDialog(row)
+                })
+              ),
+              h(ElTooltip, { content: '删除', placement: 'top' }, () => 
+                h(ArtButtonTable, {
+                  type: 'delete',
+                  onClick: () => deleteData(row)
+                })
+              )
             ])
         }
       ]
@@ -195,7 +218,6 @@
         return records.map((item, index: number) => {
           return {
             ...item,
-            avatar: ACCOUNT_TABLE_DATA[index % ACCOUNT_TABLE_DATA.length].avatar
           }
         })
       }
@@ -206,35 +228,48 @@
    * 搜索处理
    * @param params 参数
    */
-  const handleSearch = (params: Api.SystemManage.UserSearchParams) => {
-    replaceSearchParams(params)
+  const handleSearch = (params: Api.Common.CommonSearchParams) => {
+    const { start_end_time, ...filtersParams } = params
+    const [start_time, end_time] = Array.isArray(start_end_time) ? start_end_time : [null, null]
+    
+    replaceSearchParams({ ...filtersParams, start_time, end_time })
     getData()
   }
 
   /**
-   * 显示用户弹窗
+   * 显示弹窗
    */
-  const showDialog = (type: DialogType, row?: UserListItem): void => {
-    console.log('打开弹窗:', { type, row })
+  const showDialog = (type: DialogType, row?: ListItem): void => {
     dialogType.value = type
-    currentUserData.value = row || {}
+    currentData.value = row || {}
     nextTick(() => {
       dialogVisible.value = true
     })
   }
 
-  /**
-   * 删除用户
-   */
-  const deleteUser = (row: UserListItem): void => {
-    console.log('删除用户:', row)
-    ElMessageBox.confirm(`确定要注销该用户吗？`, '注销用户', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'error'
-    }).then(() => {
-      ElMessage.success('注销成功')
+  const showRoleDialog = (row: ListItem): void => {
+    currentData.value = row
+    nextTick(() => {
+      roleDialogVisible.value = true
     })
+  }
+
+  /**
+   * 删除
+   */
+  const deleteData = async (row: ListItem): Promise<void> => {
+    try {
+      await ElMessageBox.confirm(`确定要删除 ID:${row.id} 吗？`, '删除', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'error'
+      })
+      await fetchDelete(API_URL.user.delete, [row.id])
+      ElMessage.success('删除成功')
+      refreshData()
+    } catch {
+      // 取消删除
+    }
   }
 
   /**
@@ -243,7 +278,8 @@
   const handleDialogSubmit = async () => {
     try {
       dialogVisible.value = false
-      currentUserData.value = {}
+      currentData.value = {}
+      refreshData()
     } catch (error) {
       console.error('提交失败:', error)
     }
@@ -252,7 +288,7 @@
   /**
    * 处理表格行选择变化
    */
-  const handleSelectionChange = (selection: UserListItem[]): void => {
+  const handleSelectionChange = (selection: ListItem[]): void => {
     selectedRows.value = selection
     console.log('选中行数据:', selectedRows.value)
   }
