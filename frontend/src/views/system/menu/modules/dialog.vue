@@ -18,6 +18,7 @@
       label-width="100px"
       :show-reset="false"
       :show-submit="false"
+      :sanitizeOutput="{ removeEmptyString: false }"
     >
       <template #menuType>
         <ElRadioGroup v-model="form.menuType" :disabled="disableMenuType">
@@ -45,6 +46,8 @@
   import type { FormItem } from '@/components/core/forms/art-form/index.vue'
   import ArtForm from '@/components/core/forms/art-form/index.vue'
   import { useWindowSize } from '@vueuse/core'
+  import { API_URL } from '@/utils/constants'
+  import { fetchSave } from '@/api/common'
 
   const { width } = useWindowSize()
 
@@ -71,29 +74,25 @@
 
   interface MenuFormData {
     id: number
-    name: string
+    type: number
+    title: string
     path: string
-    label: string
+    name: string
     component: string
     icon: string
-    isEnable: boolean
+    is_enable: boolean
     sort: number
-    isMenu: boolean
-    keepAlive: boolean
-    isHide: boolean
-    isHideTab: boolean
+    keepalive: boolean
+    is_hide: boolean
+    is_hide_tab: boolean
     link: string
-    isIframe: boolean
-    showBadge: boolean
-    showTextBadge: string
-    fixedTab: boolean
-    activePath: string
-    roles: string[]
-    isFullPage: boolean
-    authName: string
-    authLabel: string
-    authIcon: string
-    authSort: number
+    is_iframe: boolean
+    show_badge: boolean
+    show_text_badge: string
+    fixed_tab: boolean
+    active_path: string
+    is_full_page: boolean
+    pid: number
   }
 
   interface Props {
@@ -105,7 +104,7 @@
 
   interface Emits {
     (e: 'update:visible', value: boolean): void
-    (e: 'submit', data: MenuFormData): void
+    (e: 'submit', data: any): void
   }
 
   const props = withDefaults(defineProps<Props>(), {
@@ -119,43 +118,39 @@
   const formRef = ref()
   const isEdit = ref(false)
 
-  const form = reactive<MenuFormData & { menuType: 'menu' | 'button' }>({
+  const initialFormData = {
     menuType: 'menu',
     id: 0,
-    name: '',
+    type: 1,
+    title: '',
     path: '',
-    label: '',
+    name: '',
     component: '',
     icon: '',
-    isEnable: true,
+    is_enable: true,
     sort: 1,
-    isMenu: true,
-    keepAlive: true,
-    isHide: false,
-    isHideTab: false,
+    keepalive: false,
+    is_hide: false,
+    is_hide_tab: false,
     link: '',
-    isIframe: false,
-    showBadge: false,
-    showTextBadge: '',
-    fixedTab: false,
-    activePath: '',
-    roles: [],
-    isFullPage: false,
-    authName: '',
-    authLabel: '',
-    authIcon: '',
-    authSort: 1
-  })
+    is_iframe: false,
+    show_badge: false,
+    show_text_badge: '',
+    fixed_tab: false,
+    active_path: '',
+    is_full_page: false,
+    pid: 0
+  }
+
+  const form = reactive<typeof initialFormData>({ ...initialFormData })
 
   const rules = reactive<FormRules>({
-    name: [
-      { required: true, message: '请输入菜单名称', trigger: 'blur' },
+    title: [
+      { required: true, message: '请输入菜单/权限名称', trigger: 'blur' },
       { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
     ],
     path: [{ required: true, message: '请输入路由地址', trigger: 'blur' }],
-    label: [{ required: true, message: '输入权限标识', trigger: 'blur' }],
-    authName: [{ required: true, message: '请输入权限名称', trigger: 'blur' }],
-    authLabel: [{ required: true, message: '请输入权限标识', trigger: 'blur' }]
+    name: [{ required: true, message: '请输入权限标识', trigger: 'blur' }],
   })
 
   /**
@@ -170,7 +165,7 @@
     if (form.menuType === 'menu') {
       return [
         ...baseItems,
-        { label: '菜单名称', key: 'name', type: 'input', props: { placeholder: '菜单名称' } },
+        { label: '菜单名称', key: 'title', type: 'input', props: { placeholder: '菜单名称' }, span: 24 },
         {
           label: createLabelTooltip(
             '路由地址',
@@ -178,9 +173,10 @@
           ),
           key: 'path',
           type: 'input',
-          props: { placeholder: '如：/dashboard 或 console' }
+          props: { placeholder: '如：/dashboard 或 console' },
+          span: 24
         },
-        { label: '权限标识', key: 'label', type: 'input', props: { placeholder: '如：User' } },
+        { label: '权限标识', key: 'name', type: 'input', props: { placeholder: '如：User' }, span: 24 },
         {
           label: createLabelTooltip(
             '组件路径',
@@ -188,74 +184,73 @@
           ),
           key: 'component',
           type: 'input',
-          props: { placeholder: '如：/system/user 或留空' }
+          props: { placeholder: '如：/system/user 或留空' },
+          span: 24
         },
-        { label: '图标', key: 'icon', type: 'input', props: { placeholder: '如：ri:user-line' } },
-        {
-          label: createLabelTooltip(
-            '角色权限',
-            '仅用于前端权限模式：配置角色标识（如 R_SUPER、R_ADMIN）\n后端权限模式：无需配置'
-          ),
-          key: 'roles',
-          type: 'inputtag',
-          props: { placeholder: '输入角色标识后按回车，如：R_SUPER' }
-        },
+        { label: '图标', key: 'icon', type: 'input', props: { placeholder: '如：ri:user-line' }, span: 24 },
         {
           label: '菜单排序',
           key: 'sort',
           type: 'number',
-          props: { min: 1, controlsPosition: 'right', style: { width: '100%' } }
+          props: { min: 1, controlsPosition: 'right', style: { width: '100%' } },
+          span: 24
         },
         {
           label: '外部链接',
           key: 'link',
           type: 'input',
-          props: { placeholder: '如：https://www.example.com' }
+          props: { placeholder: '如：https://www.example.com' },
+          span: 24
         },
         {
           label: '文本徽章',
-          key: 'showTextBadge',
+          key: 'show_text_badge',
           type: 'input',
-          props: { placeholder: '如：New、Hot' }
+          props: { placeholder: '如：New、Hot' },
+          span: 24
         },
         {
           label: createLabelTooltip(
             '激活路径',
             '用于详情页等隐藏菜单，指定高亮显示的父级菜单路径\n例如：用户详情页高亮显示"用户管理"菜单'
           ),
-          key: 'activePath',
+          key: 'active_path',
           type: 'input',
-          props: { placeholder: '如：/system/user' }
+          props: { placeholder: '如：/system/user' },
+          span: 24
         },
-        { label: '是否启用', key: 'isEnable', type: 'switch', span: switchSpan },
-        { label: '页面缓存', key: 'keepAlive', type: 'switch', span: switchSpan },
-        { label: '隐藏菜单', key: 'isHide', type: 'switch', span: switchSpan },
-        { label: '是否内嵌', key: 'isIframe', type: 'switch', span: switchSpan },
-        { label: '显示徽章', key: 'showBadge', type: 'switch', span: switchSpan },
-        { label: '固定标签', key: 'fixedTab', type: 'switch', span: switchSpan },
-        { label: '标签隐藏', key: 'isHideTab', type: 'switch', span: switchSpan },
-        { label: '全屏页面', key: 'isFullPage', type: 'switch', span: switchSpan }
+        { label: '是否启用', key: 'is_enable', type: 'switch', span: switchSpan },
+        { label: '页面缓存', key: 'keepalive', type: 'switch', span: switchSpan },
+        { label: '隐藏菜单', key: 'is_hide', type: 'switch', span: switchSpan },
+        { label: '是否内嵌', key: 'is_iframe', type: 'switch', span: switchSpan },
+        { label: '显示徽章', key: 'show_badge', type: 'switch', span: switchSpan },
+        { label: '固定标签', key: 'fixed_tab', type: 'switch', span: switchSpan },
+        { label: '标签隐藏', key: 'is_hide_tab', type: 'switch', span: switchSpan },
+        { label: '全屏页面', key: 'is_full_page', type: 'switch', span: switchSpan }
       ]
     } else {
       return [
         ...baseItems,
         {
           label: '权限名称',
-          key: 'authName',
+          key: 'title',
           type: 'input',
-          props: { placeholder: '如：新增、编辑、删除' }
+          props: { placeholder: '如：新增、编辑、删除' },
+          span: 24
         },
         {
           label: '权限标识',
-          key: 'authLabel',
+          key: 'name',
           type: 'input',
-          props: { placeholder: '如：add、edit、delete' }
+          props: { placeholder: '如：add、edit、delete' },
+          span: 24
         },
         {
           label: '权限排序',
-          key: 'authSort',
+          key: 'sort',
           type: 'number',
-          props: { min: 1, controlsPosition: 'right', style: { width: '100%' } }
+          props: { min: 1, controlsPosition: 'right', style: { width: '100%' } },
+          span: 24
         }
       ]
     }
@@ -281,6 +276,7 @@
   const resetForm = (): void => {
     formRef.value?.reset()
     form.menuType = 'menu'
+    form.pid = 0
   }
 
   /**
@@ -294,33 +290,40 @@
     if (form.menuType === 'menu') {
       const row = props.editData
       form.id = row.id || 0
-      form.name = formatMenuTitle(row.meta?.title || '')
+      form.type = row.meta?.type || 1
+      form.title = formatMenuTitle(row.meta?.title || '')
       form.path = row.path || ''
-      form.label = row.name || ''
+      form.name = row.name || ''
       form.component = row.component || ''
       form.icon = row.meta?.icon || ''
       form.sort = row.meta?.sort || 1
-      form.isMenu = row.meta?.isMenu ?? true
-      form.keepAlive = row.meta?.keepAlive ?? false
-      form.isHide = row.meta?.isHide ?? false
-      form.isHideTab = row.meta?.isHideTab ?? false
-      form.isEnable = row.meta?.isEnable ?? true
+      form.keepalive = row.meta?.keepAlive ?? false
+      form.is_hide = row.meta?.isHide ?? false
+      form.is_hide_tab = row.meta?.isHideTab ?? false
+      form.is_enable = row.meta?.isEnable ?? true
       form.link = row.meta?.link || ''
-      form.isIframe = row.meta?.isIframe ?? false
-      form.showBadge = row.meta?.showBadge ?? false
-      form.showTextBadge = row.meta?.showTextBadge || ''
-      form.fixedTab = row.meta?.fixedTab ?? false
-      form.activePath = row.meta?.activePath || ''
-      form.roles = row.meta?.roles || []
-      form.isFullPage = row.meta?.isFullPage ?? false
+      form.is_iframe = row.meta?.isIframe ?? false
+      form.show_badge = row.meta?.showBadge ?? false
+      form.show_text_badge = row.meta?.showTextBadge || ''
+      form.fixed_tab = row.meta?.fixedTab ?? false
+      form.active_path = row.meta?.activePath || ''
+      form.is_full_page = row.meta?.isFullPage ?? false
+      form.pid = row.meta?.pid || 0
     } else {
       const row = props.editData
-      form.authName = row.title || ''
-      form.authLabel = row.authMark || ''
-      form.authIcon = row.icon || ''
-      form.authSort = row.sort || 1
+      form.id = row.id || 0
+      form.title = row.title || ''
+      form.name = row.authMark || ''
+      form.sort = row.sort || 1
+      form.pid = row.pid || 0
     }
   }
+
+  /**
+   * 将布尔值转换为后端需要的数值
+   * true -> 1, false -> -1
+   */
+  const convertBoolToNum = (value: boolean): number => (value ? 1 : -1)
 
   /**
    * 提交表单
@@ -330,7 +333,27 @@
 
     try {
       await formRef.value.validate()
-      emit('submit', { ...form })
+
+      // 用初始数据填补 ArtForm 删除的字段
+      const mergedData = { ...initialFormData, ...form }
+      const submitData: Record<string, any> = { ...mergedData }
+
+      submitData.is_enable = convertBoolToNum(form.is_enable)
+      submitData.keepalive = convertBoolToNum(form.keepalive)
+      submitData.is_hide = convertBoolToNum(form.is_hide)
+      submitData.is_hide_tab = convertBoolToNum(form.is_hide_tab)
+      submitData.is_iframe = convertBoolToNum(form.is_iframe)
+      submitData.show_badge = convertBoolToNum(form.show_badge)
+      submitData.fixed_tab = convertBoolToNum(form.fixed_tab)
+      submitData.is_full_page = convertBoolToNum(form.is_full_page)
+
+      submitData.id = isEdit.value ? form.id : 0
+      submitData.type = form.menuType === 'menu' ? 1 : 2
+
+      const url = submitData.id ? `${API_URL.auth.save}/${submitData.id}` : API_URL.auth.save
+      await fetchSave(url, submitData)
+
+      emit('submit', submitData)
       ElMessage.success(`${isEdit.value ? '编辑' : '新增'}成功`)
       handleCancel()
     } catch {
@@ -361,11 +384,17 @@
     (newVal) => {
       if (newVal) {
         form.menuType = props.type
-        nextTick(() => {
-          if (props.editData) {
-            loadFormData()
+        if (props.editData) {
+          if (props.editData.id) {
+            nextTick(() => {
+              loadFormData()
+            })
+          } else {
+            form.pid = props.editData.pid || 0
           }
-        })
+        } else {
+          form.pid = 0
+        }
       }
     }
   )

@@ -98,6 +98,7 @@
         multiple: true,
         clearable: true,
         defaultExpandAll: true,
+        checkStrictly: true,
         props: {
           label: 'label',
           children: 'children',
@@ -157,9 +158,12 @@
   const handleSubmit = async (params: Record<string, any>) => {
     await formRef.value?.validate()
     
+    // 用初始数据填补 ArtForm 删除的字段
+    const mergedData = { ...initialFormData, ...params }
+    
     const submitData: Record<string, any> = {
-      ...params,
-      auth_ids: params.auth_ids?.join(',') || ''
+      ...mergedData,
+      auth_ids: mergedData.auth_ids?.join(',') || ''
     }
     
     const id = submitData.id

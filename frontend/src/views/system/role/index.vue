@@ -8,7 +8,7 @@
       <ArtTableHeader v-model:columns="columnChecks" :loading="loading" @refresh="refreshData">
         <template #left>
           <ElSpace wrap>
-            <ElButton type="primary" @click="showDialog('add')" v-ripple>
+            <ElButton type="primary" v-auth="'add'" @click="showDialog('add')" v-ripple>
               <ElIcon>
                 <Plus />
               </ElIcon>
@@ -45,6 +45,7 @@
   import { Plus } from '@element-plus/icons-vue'
   import ArtButtonTable from '@/components/core/forms/art-button-table/index.vue'
   import { useTable } from '@/hooks/core/useTable'
+  import { useAuth } from '@/hooks/core/useAuth'
   import { fetchGetList, fetchDelete } from '@/api/common'
   import Search from './modules/search.vue'
   import Dialog from './modules/dialog.vue'
@@ -69,6 +70,8 @@
 
   // 搜索表单
   const searchForm = ref({})
+
+  const { hasAuth } = useAuth()
 
   const {
     columns,
@@ -97,7 +100,7 @@
       },
       columnsFactory: () => [
         { type: 'selection' }, // 勾选列
-        { prop: 'id', width: 60, label: 'ID' },
+        { prop: 'id', width: 80, label: 'ID', sortable: true },
         { prop: 'name', label: '角色名称' },
         { prop: 'remark', label: '角色备注' },
         {
@@ -125,18 +128,18 @@
           fixed: 'right',
           formatter: (row) =>
             h('div', [
-              h(ElTooltip, { content: '编辑', placement: 'top' }, () => 
+              hasAuth('edit') ? h(ElTooltip, { content: '编辑', placement: 'top' }, () => 
                 h(ArtButtonTable, {
                   type: 'edit',
                   onClick: () => showDialog('edit', row)
                 })
-              ),
-              h(ElTooltip, { content: '删除', placement: 'top' }, () => 
+              ) : null,
+              hasAuth('delete') ? h(ElTooltip, { content: '删除', placement: 'top' }, () => 
                 h(ArtButtonTable, {
                   type: 'delete',
                   onClick: () => deleteData(row)
                 })
-              )
+              ) : null,
             ])
         }
       ]

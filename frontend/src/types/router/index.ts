@@ -47,8 +47,15 @@ export interface RouteMeta extends Record<string | number | symbol, unknown> {
   keepAlive?: boolean
   /** 操作权限 */
   authList?: Array<{
+    id: number
+    pid: number
     title: string
     authMark: string
+    sort: number
+    created?: number
+    updated?: number
+    type?: number
+    isEnable?: boolean
   }>
   /** 是否为一级菜单 */
   isFirstLevel?: boolean
@@ -66,6 +73,18 @@ export interface RouteMeta extends Record<string | number | symbol, unknown> {
   authMark?: string
   /** 父级路径 */
   parentPath?: string
+  /** 是否启用 */
+  isEnable?: boolean
+  /** 创建时间 */
+  created?: number
+  /** 更新时间 */
+  updated?: number
+  /** 类型 */
+  type?: number
+  /** 父级ID */
+  pid?: number
+  /** 排序 */
+  sort?: number
 }
 
 /**

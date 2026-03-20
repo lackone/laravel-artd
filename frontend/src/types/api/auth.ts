@@ -16,5 +16,13 @@ declare namespace Api.Auth {
     userName: string
     email: string
     avatar?: string
+    phone?: string
+    address?: string
+    real_name?: string
+    nick_name?: string
+    remark?: string
+    weixin?: string
+    account?: string
+    sex?: number
   }
 }

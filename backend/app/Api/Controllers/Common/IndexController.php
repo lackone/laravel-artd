@@ -2,6 +2,7 @@
 
 namespace App\Api\Controllers\Common;
 
+use App\Api\Services\AdminAuthService;
 use App\Api\Services\AdminService;
 use App\Api\Services\UploadService;
 use App\Models\AdminAuth;

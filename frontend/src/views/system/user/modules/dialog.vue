@@ -270,9 +270,11 @@
 
   const handleSubmit = async (params: Record<string, any>) => {
     await formRef.value?.validate()
+
+    const mergedData = { ...initialFormData, ...params }
     
     const submitData: Record<string, any> = {
-      ...params,
+      ...mergedData,
       avatar: params.avatar?.[0]?.url || ''
     }
     

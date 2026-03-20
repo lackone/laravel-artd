@@ -28,7 +28,7 @@ Route::group([
 
         Route::any('/admin/info', 'AdminController@info')->name('admin.info');
         Route::any('/admin/list', 'AdminController@list')->name('admin.list');
-        Route::any('/admin/delete', 'AdminController@list')->name('admin.delete');
+        Route::any('/admin/delete', 'AdminController@delete')->name('admin.delete');
         Route::any('/admin/save/{admin?}', 'AdminController@save')->name('admin.save');
         Route::any('/admin/set_role/{admin?}', 'AdminController@setRole')->name('admin.set_role');
 
@@ -37,5 +37,8 @@ Route::group([
         Route::any('/role/delete', 'AdminRoleController@delete')->name('role.delete');
 
         Route::any('/auth/menu_list', 'AdminAuthController@menuList')->name('auth.menu_list');
+        Route::any('/auth/list', 'AdminAuthController@list')->name('auth.list');
+        Route::any('/auth/save/{auth?}', 'AdminAuthController@save')->name('auth.save');
+        Route::any('/auth/delete', 'AdminAuthController@delete')->name('auth.delete');
     });
 });
