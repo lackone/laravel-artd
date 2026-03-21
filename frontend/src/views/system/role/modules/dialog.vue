@@ -25,7 +25,7 @@
   import ArtForm from '@/components/core/forms/art-form/index.vue'
   import { ElMessage, ElUpload, ElIcon } from 'element-plus'
   import { STATUS_OPTIONS, GENDER_OPTIONS, API_URL } from '@/utils/constants'
-  import { fetchGetList, fetchSave } from '@/api/common'
+  import { fetchGet, fetchSave } from '@/api/common'
 
   interface Props {
     visible: boolean
@@ -63,7 +63,7 @@
   const treeSelectData = ref<any[]>([])
 
   const fetchAuthList = async () => {
-    const res = await fetchGetList(API_URL.common.authList)
+    const res = await fetchGet(API_URL.common.authList)
     treeSelectData.value = Array.isArray(res) ? res : (res.data || [])
   }
   fetchAuthList()

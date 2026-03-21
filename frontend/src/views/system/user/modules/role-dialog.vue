@@ -25,7 +25,7 @@
   import ArtForm from '@/components/core/forms/art-form/index.vue'
   import { ElMessage } from 'element-plus'
   import { API_URL } from '@/utils/constants'
-  import { fetchGetList, fetchSave } from '@/api/common'
+  import { fetchGet, fetchSave } from '@/api/common'
 
   interface Props {
     visible: boolean
@@ -73,7 +73,7 @@
     () => props.visible,
     async (visible) => {
       if (visible) {
-        const res = await fetchGetList(API_URL.common.roleList)
+        const res = await fetchGet(API_URL.common.roleList)
         roleList.value = Array.isArray(res) ? res : (res.data || [])
         
         const roles = props.data?.roles as any[] | undefined

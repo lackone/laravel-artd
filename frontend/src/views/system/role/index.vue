@@ -46,7 +46,7 @@
   import ArtButtonTable from '@/components/core/forms/art-button-table/index.vue'
   import { useTable } from '@/hooks/core/useTable'
   import { useAuth } from '@/hooks/core/useAuth'
-  import { fetchGetList, fetchDelete } from '@/api/common'
+  import { fetchGet, fetchDelete } from '@/api/common'
   import Search from './modules/search.vue'
   import Dialog from './modules/dialog.vue'
   import { ElTag, ElMessageBox, ElImage, ElTooltip } from 'element-plus'
@@ -88,7 +88,7 @@
   } = useTable({
     // 核心配置
     core: {
-      apiFn: (params: any) => fetchGetList<Api.Common.DataList>(API_URL.role.list, params),
+      apiFn: (params: any) => fetchGet<Api.Common.DataList>(API_URL.role.list, params),
       apiParams: {
         current: 1,
         size: 10,

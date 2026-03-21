@@ -56,7 +56,7 @@
   import { useTableColumns } from '@/hooks/core/useTableColumns'
   import type { AppRouteRecord } from '@/types/router'
   import MenuDialog from './modules/dialog.vue'
-  import { fetchGetList, fetchDelete } from '@/api/common'
+  import { fetchGet, fetchDelete } from '@/api/common'
   import { ElTag, ElMessageBox } from 'element-plus'
   import { getStatusConfig, formatDateTime, API_URL } from '@/utils/constants'
   import { useAuth } from '@/hooks/core/useAuth'
@@ -118,7 +118,7 @@
     loading.value = true
 
     try {
-      const list = await fetchGetList<AppRouteRecord[]>(API_URL.auth.list, appliedFilters)
+      const list = await fetchGet<AppRouteRecord[]>(API_URL.auth.list, appliedFilters)
       tableData.value = list
     } catch (error) {
       throw error instanceof Error ? error : new Error('获取菜单失败')

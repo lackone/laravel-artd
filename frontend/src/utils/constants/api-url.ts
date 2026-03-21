@@ -19,5 +19,9 @@ export const API_URL = {
     list: '/api/auth/list',
     delete: '/api/auth/delete',
     save: '/api/auth/save'
+  },
+  config: {
+    set: '/api/config/set',
+    get: '/api/config/get'
   }
 }

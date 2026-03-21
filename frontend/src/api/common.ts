@@ -1,6 +1,6 @@
 import request from '@/utils/http'
 
-export function fetchGetList<T = any>(url: string, params?: any) {
+export function fetchGet<T = any>(url: string, params?: any) {
   return request.get<T>({
     url,
     params

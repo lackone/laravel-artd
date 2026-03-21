@@ -115,6 +115,7 @@
   import { fetchLogin } from '@/api/auth'
   import { ElNotification, type FormInstance, type FormRules } from 'element-plus'
   import { useSettingStore } from '@/store/modules/setting'
+  import { watch } from 'vue'
 
   defineOptions({ name: 'Login' })
 
@@ -188,7 +189,40 @@
   const loading = ref(false)
 
   onMounted(() => {
-    setupAccount('super')
+    // 从本地存储加载记住的密码
+    loadRememberedPassword()
+  })
+
+  // 从本地存储加载记住的密码和勾选状态
+  const loadRememberedPassword = () => {
+    // 加载勾选状态
+    const rememberStatus = localStorage.getItem('rememberPasswordStatus')
+    formData.rememberPassword = rememberStatus === 'true'
+
+    // 如果勾选了记住密码，加载保存的用户名和密码
+    if (formData.rememberPassword) {
+      const remembered = localStorage.getItem('rememberedPassword')
+      if (remembered) {
+        try {
+          const { username, password } = JSON.parse(remembered)
+          formData.username = username
+          formData.password = password
+        } catch (error) {
+          console.error('Failed to load remembered password:', error)
+        }
+      }
+    }
+  }
+
+  // 监听记住密码勾选状态变化
+  watch(() => formData.rememberPassword, (newValue) => {
+    // 保存勾选状态到本地存储
+    localStorage.setItem('rememberPasswordStatus', newValue.toString())
+    
+    // 如果取消勾选，清除保存的密码
+    if (!newValue) {
+      localStorage.removeItem('rememberedPassword')
+    }
   })
 
   // 设置账号
@@ -232,6 +266,14 @@
       // 存储 token 和登录状态
       userStore.setToken(token, refreshToken)
       userStore.setLoginStatus(true)
+
+      // 处理记住密码
+      if (formData.rememberPassword) {
+        localStorage.setItem('rememberedPassword', JSON.stringify({
+          username: formData.username,
+          password: formData.password
+        }))
+      }
 
       // 登录成功处理
       showLoginSuccessNotice()

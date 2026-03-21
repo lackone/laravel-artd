@@ -40,5 +40,8 @@ Route::group([
         Route::any('/auth/list', 'AdminAuthController@list')->name('auth.list');
         Route::any('/auth/save/{auth?}', 'AdminAuthController@save')->name('auth.save');
         Route::any('/auth/delete', 'AdminAuthController@delete')->name('auth.delete');
+
+        Route::any('/config/set', 'ConfigController@setConfig')->name('config.set');
+        Route::any('/config/get', 'ConfigController@getConfig')->name('config.get');
     });
 });
