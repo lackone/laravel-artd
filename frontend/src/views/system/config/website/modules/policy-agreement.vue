@@ -32,7 +32,7 @@ defineOptions({ name: 'PolicyAgreement' })
 const formRef = ref()
 const loading = ref(false)
 
-const formData = reactive({
+const formData = ref({
   user_agreement: '',
   privacy_policy: '',
   service_terms: '',
@@ -48,11 +48,11 @@ const formItems = computed(() => [
     span: 24,
     render: () =>
       h(ArtWangEditor, {
-        modelValue: formData.user_agreement,
+        modelValue: formData.value.user_agreement,
         height: '300px',
         placeholder: '请输入用户协议内容...',
         'onUpdate:modelValue': (value: string) => {
-          formData.user_agreement = value
+          formData.value.user_agreement = value
         },
         uploadConfig: {
           server: API_URL.common.upload,
@@ -68,11 +68,11 @@ const formItems = computed(() => [
     span: 24,
     render: () =>
       h(ArtWangEditor, {
-        modelValue: formData.privacy_policy,
+        modelValue: formData.value.privacy_policy,
         height: '300px',
         placeholder: '请输入隐私政策内容...',
         'onUpdate:modelValue': (value: string) => {
-          formData.privacy_policy = value
+          formData.value.privacy_policy = value
         },
         uploadConfig: {
           server: API_URL.common.upload,
@@ -88,11 +88,11 @@ const formItems = computed(() => [
     span: 24,
     render: () =>
       h(ArtWangEditor, {
-        modelValue: formData.service_terms,
+        modelValue: formData.value.service_terms,
         height: '300px',
         placeholder: '请输入服务条款内容...',
         'onUpdate:modelValue': (value: string) => {
-          formData.service_terms = value
+          formData.value.service_terms = value
         },
         uploadConfig: {
           server: API_URL.common.upload,
@@ -108,11 +108,11 @@ const formItems = computed(() => [
     span: 24,
     render: () =>
       h(ArtWangEditor, {
-        modelValue: formData.disclaimer,
+        modelValue: formData.value.disclaimer,
         height: '300px',
         placeholder: '请输入免责声明内容...',
         'onUpdate:modelValue': (value: string) => {
-          formData.disclaimer = value
+          formData.value.disclaimer = value
         },
         uploadConfig: {
           server: API_URL.common.upload,
@@ -128,11 +128,11 @@ const formItems = computed(() => [
     span: 24,
     render: () =>
       h(ArtWangEditor, {
-        modelValue: formData.copyright_notice,
+        modelValue: formData.value.copyright_notice,
         height: '200px',
         placeholder: '请输入版权声明内容...',
         'onUpdate:modelValue': (value: string) => {
-          formData.copyright_notice = value
+          formData.value.copyright_notice = value
         },
         uploadConfig: {
           server: API_URL.common.upload,
@@ -148,11 +148,11 @@ const formItems = computed(() => [
     span: 24,
     render: () =>
       h(ArtWangEditor, {
-        modelValue: formData.cookie_policy,
+        modelValue: formData.value.cookie_policy,
         height: '200px',
         placeholder: '请输入Cookie政策内容...',
         'onUpdate:modelValue': (value: string) => {
-          formData.cookie_policy = value
+          formData.value.cookie_policy = value
         },
         uploadConfig: {
           server: API_URL.common.upload,
@@ -171,7 +171,7 @@ const loadConfig = async () => {
     const res = await fetchGet(API_URL.config.get, {'key': 'policy'})
     if (res) {
       const data = res
-      Object.assign(formData, {
+      Object.assign(formData.value, {
         user_agreement: data.user_agreement || '',
         privacy_policy: data.privacy_policy || '',
         service_terms: data.service_terms || '',
@@ -192,7 +192,7 @@ const handleSubmit = async () => {
   loading.value = true
   try {
     const submitData = {
-      ...formData,
+      ...formData.value,
       key: 'policy'
     }
     
@@ -207,7 +207,7 @@ const handleSubmit = async () => {
 }
 
 const handleReset = () => {
-  Object.assign(formData, {
+  Object.assign(formData.value, {
     user_agreement: '',
     privacy_policy: '',
     service_terms: '',

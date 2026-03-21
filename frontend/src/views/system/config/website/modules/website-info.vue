@@ -40,7 +40,7 @@ const dialogVisible = ref(false)
 const dialogImageUrl = ref('')
 const loading = ref(false)
 
-const formData = reactive({
+const formData = ref({
   website_name: '',
   website_domain: '',
   website_title: '',
@@ -106,7 +106,7 @@ const formItems = computed(() => [
         autoUpload: true,
         showFileList: true,
         listType: 'picture-card',
-        fileList: formData.website_logo,
+        fileList: formData.value.website_logo,
         beforeUpload: (file: File) => {
           const isImage = file.type.startsWith('image/')
           const isLt2M = file.size / 1024 / 1024 < 2
@@ -121,7 +121,7 @@ const formItems = computed(() => [
           return true
         },
         onChange: (file: UploadFile, fileList: UploadFiles) => {
-          formData.website_logo = fileList as UploadUserFile[]
+          formData.value.website_logo = fileList as UploadUserFile[]
         },
         onSuccess: (response: any, file: UploadFile) => {
           const url = response.data?.url || response.url
@@ -130,7 +130,7 @@ const formItems = computed(() => [
           }
         },
         onRemove: () => {
-          formData.website_logo = []
+          formData.value.website_logo = []
         },
         onPreview: (file: UploadFile) => {
           dialogImageUrl.value = file.url || ''
@@ -153,7 +153,7 @@ const formItems = computed(() => [
         autoUpload: true,
         showFileList: true,
         listType: 'picture-card',
-        fileList: formData.website_favicon,
+        fileList: formData.value.website_favicon,
         beforeUpload: (file: File) => {
           const isICO = file.name.endsWith('.ico')
           const isLt100K = file.size / 1024 < 100
@@ -168,7 +168,7 @@ const formItems = computed(() => [
           return true
         },
         onChange: (file: UploadFile, fileList: UploadFiles) => {
-          formData.website_favicon = fileList as UploadUserFile[]
+          formData.value.website_favicon = fileList as UploadUserFile[]
         },
         onSuccess: (response: any, file: UploadFile) => {
           const url = response.data?.url || response.url
@@ -177,7 +177,7 @@ const formItems = computed(() => [
           }
         },
         onRemove: () => {
-          formData.website_favicon = []
+          formData.value.website_favicon = []
         },
         onPreview: (file: UploadFile) => {
           dialogImageUrl.value = file.url || ''
@@ -197,7 +197,7 @@ const loadConfig = async () => {
     const res = await fetchGet(API_URL.config.get, {'key': 'website'})
     if (res) {
       const data = res
-      Object.assign(formData, {
+      Object.assign(formData.value, {
         website_name: data.website_name || '',
         website_domain: data.website_domain || '',
         website_title: data.website_title || '',
@@ -219,10 +219,10 @@ const handleSubmit = async () => {
   loading.value = true
   try {
     const submitData = {
-      ...formData,
+      ...formData.value,
       key: 'website',
-      website_logo: formData.website_logo?.[0]?.url || '',
-      website_favicon: formData.website_favicon?.[0]?.url || ''
+      website_logo: formData.value.website_logo?.[0]?.url || '',
+      website_favicon: formData.value.website_favicon?.[0]?.url || ''
     }
     
     await fetchSave(API_URL.config.set, submitData)
@@ -236,7 +236,7 @@ const handleSubmit = async () => {
 }
 
 const handleReset = () => {
-  Object.assign(formData, {
+  Object.assign(formData.value, {
     website_name: '',
     website_domain: '',
     website_title: '',

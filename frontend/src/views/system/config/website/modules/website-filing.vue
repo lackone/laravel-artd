@@ -31,7 +31,7 @@ defineOptions({ name: 'WebsiteFiling' })
 const formRef = ref()
 const loading = ref(false)
 
-const formData = reactive({
+const formData = ref({
   filing_number: '',
   filing_license: '',
   filing_subject: '',
@@ -92,7 +92,7 @@ const loadConfig = async () => {
     const res = await fetchGet(API_URL.config.get, {'key': 'filing'})
     if (res) {
       const data = res
-      Object.assign(formData, {
+      Object.assign(formData.value, {
         filing_number: data.filing_number || '',
         filing_license: data.filing_license || '',
         filing_subject: data.filing_subject || '',
@@ -112,7 +112,7 @@ const handleSubmit = async () => {
   loading.value = true
   try {
     const submitData = {
-      ...formData,
+      ...formData.value,
       key: 'filing'
     }
     
@@ -127,7 +127,7 @@ const handleSubmit = async () => {
 }
 
 const handleReset = () => {
-  Object.assign(formData, {
+  Object.assign(formData.value, {
     filing_number: '',
     filing_license: '',
     filing_subject: '',
