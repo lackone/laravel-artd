@@ -331,7 +331,7 @@ const { columnChecks, columns } = useTableColumns(() => [
 
       if (item.meta?.authList?.length) {
         const authChildren: AppRouteRecord[] = item.meta.authList.map(
-          (auth: { title: string; authMark: string; id: number; pid: number; sort: number; created?: number; updated?: number; type?: number; isEnable?: boolean }) => ({
+          (auth: { title: string; authMark: string; id?: number; pid?: number; sort?: number; created?: number; updated?: number; type?: number; isEnable?: boolean }) => ({
             id: auth.id,
             path: `${item.path}_auth_${auth.authMark}`,
             name: `${String(item.name)}_auth_${auth.authMark}`,

@@ -47,11 +47,11 @@ export interface RouteMeta extends Record<string | number | symbol, unknown> {
   keepAlive?: boolean
   /** 操作权限 */
   authList?: Array<{
-    id: number
-    pid: number
+    id?: number
+    pid?: number
     title: string
     authMark: string
-    sort: number
+    sort?: number
     created?: number
     updated?: number
     type?: number
