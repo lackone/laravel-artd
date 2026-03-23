@@ -31,13 +31,15 @@ defineOptions({ name: 'WebsiteFiling' })
 const formRef = ref()
 const loading = ref(false)
 
-const formData = ref({
+const initialFormData = {
   filing_number: '',
   filing_license: '',
   filing_subject: '',
   filing_link: '',
   filing_remark: ''
-})
+}
+
+const formData = ref({ ...initialFormData })
 
 const formItems = computed(() => [
   {
@@ -111,8 +113,10 @@ const loadConfig = async () => {
 const handleSubmit = async () => {
   loading.value = true
   try {
+    const mergedData = { ...initialFormData, ...formData.value }
+    
     const submitData = {
-      ...formData.value,
+      ...mergedData,
       key: 'filing'
     }
     

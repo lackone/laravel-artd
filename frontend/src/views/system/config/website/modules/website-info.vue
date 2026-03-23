@@ -40,7 +40,7 @@ const dialogVisible = ref(false)
 const dialogImageUrl = ref('')
 const loading = ref(false)
 
-const formData = ref({
+const initialFormData = {
   website_name: '',
   website_domain: '',
   website_title: '',
@@ -48,7 +48,9 @@ const formData = ref({
   website_description: '',
   website_logo: [] as UploadUserFile[],
   website_favicon: [] as UploadUserFile[],
-})
+}
+
+const formData = ref({ ...initialFormData })
 
 const formItems = computed(() => [
   {
@@ -218,8 +220,10 @@ const loadConfig = async () => {
 const handleSubmit = async () => {
   loading.value = true
   try {
+    const mergedData = { ...initialFormData, ...formData.value }
+    
     const submitData = {
-      ...formData.value,
+      ...mergedData,
       key: 'website',
       website_logo: formData.value.website_logo?.[0]?.url || '',
       website_favicon: formData.value.website_favicon?.[0]?.url || ''

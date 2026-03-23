@@ -55,6 +55,10 @@ class AdminRoleController extends BaseController
                 throw new \Exception('角色名不能为空');
             }
 
+            $auth_ids = array_unique(array_filter(explode(',', $params['auth_ids']) ?: []));
+            sort($auth_ids);
+            $params['auth_ids'] = implode(',', $auth_ids);
+
             if ($role['id']) {
                 $role->update($params);
             } else {

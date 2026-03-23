@@ -32,14 +32,16 @@ defineOptions({ name: 'PolicyAgreement' })
 const formRef = ref()
 const loading = ref(false)
 
-const formData = ref({
+const initialFormData = {
   user_agreement: '',
   privacy_policy: '',
   service_terms: '',
   disclaimer: '',
   copyright_notice: '',
   cookie_policy: ''
-})
+}
+
+const formData = ref({ ...initialFormData })
 
 const formItems = computed(() => [
   {
@@ -191,8 +193,10 @@ const loadConfig = async () => {
 const handleSubmit = async () => {
   loading.value = true
   try {
+    const mergedData = { ...initialFormData, ...formData.value }
+    
     const submitData = {
-      ...formData.value,
+      ...mergedData,
       key: 'policy'
     }
     
